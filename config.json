@@ -1,0 +1,11 @@
+{
+  "lock_name": "Garage",
+  "api_port": 9019,
+  "username": "user",
+  "password": "password",
+  "codes": {
+    "clyde": "09812",
+    "bonnie": "11121"
+  },
+  "state": "unlocked"
+}
