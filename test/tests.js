@@ -9,9 +9,10 @@ process.env.PASSWORD = PASSWORD;
 
 
 //Require the dev-dependencies
-let chai     = require('chai');
-let chaiHttp = require('chai-http');
-let app      = require('../app');
+let nconf    = require( 'nconf' );
+let chai     = require( 'chai' );
+let chaiHttp = require( 'chai-http' );
+let app      = require( '../app' );
 let should = chai.should();
 
 chai.use( chaiHttp );
@@ -19,8 +20,18 @@ chai.use( chaiHttp );
 
 describe( 'Lock', () => {
 
+   before( () => {
+      //
+      nconf.file( './test/test_config.json' );
+   });
+
+   after( () => {
+      nconf.file( './config.json' );
+      nconf.save();
+   })
+
    /*
-   * Test the /GET route
+   * Test the GET state
    */
    describe('GET /api/state', () => {
 
@@ -28,7 +39,7 @@ describe( 'Lock', () => {
          chai.request( app )
              .get('/api/state')
              .end((err, res) => {
-                 res.should.have.status(401);
+                 res.should.have.status( 401 );
                done();
              });
          
@@ -39,7 +50,7 @@ describe( 'Lock', () => {
             .get('/api/state')
             .auth( 'notauser', 'notapassword' )
             .end((err, res) => {
-                res.should.have.status(401);
+                res.should.have.status( 401 );
               done();
             });
          
@@ -50,7 +61,8 @@ describe( 'Lock', () => {
             .get( '/api/state' )
             .auth( USERNAME, PASSWORD )
             .end((err, res) => {
-                res.should.have.status(200);
+              
+                res.should.have.status( 200 );
                 res.body.should.have.property('state');
               done();
             });
@@ -63,6 +75,7 @@ describe( 'Lock', () => {
       it( 'should not freak out if it unlocks the unlocked lock', (done) => {
          chai.request( app )
                .post( '/api/lock' )
+               .set('content-type', 'application/json')
                .auth( USERNAME, PASSWORD )
                .send( { "action": "unlock" } )
                .end( (err, res) => {
@@ -76,6 +89,7 @@ describe( 'Lock', () => {
       it( 'should lock the lock', (done) => {
          chai.request( app )
                .post( '/api/lock' )
+               .set('content-type', 'application/json')
                .auth( USERNAME, PASSWORD )
                .send( { "action": "lock" } )
                .end( (err, res) => {
@@ -89,6 +103,106 @@ describe( 'Lock', () => {
    });
 
 
+   describe( 'GET /api/codes', () => {
+      it( 'should retrieve the codes', (done) => {
+
+         chai.request( app )
+               .get( '/api/codes' )
+               .auth( USERNAME, PASSWORD )
+               .end( (err, res) => {
+
+                console.log( 'res.body: ' + JSON.stringify( res.body ) );
+                   res.should.have.status( 200 );
+                   res.body.should.have.property( 'clyde',  '000000' );
+                   res.body.should.have.property( 'bonnie', '111111' );
+                 done();
+               });
+
+      } );
+
+
+      it( "should retrieve clyde's code", (done) => {
+
+         chai.request( app )
+               .get( '/api/codes/clyde' )
+               .auth( USERNAME, PASSWORD )
+               .end( (err, res) => {
+                   res.should.have.status( 200 );
+                   res.body.should.have.property( 'clyde', '000000' )
+                 done();
+               });
+
+      });
+
+
+      it( "should update clyde's code", (done) => {
+
+         chai.request( app )
+               .post( '/api/codes/clyde' )
+               .set('content-type', 'application/json')
+               .auth( USERNAME, PASSWORD )
+               .send( { "code": "333333" } )
+               .end( (err, res) => {
+                   res.should.have.status( 200 );
+                   res.body.should.have.property( 'clyde', '333333' );
+                 done();
+               });
+
+      });
+
+      it( "should insert a new code", (done) => {
+
+         chai.request( app )
+               .post( '/api/codes/bobby' )
+               .set('content-type', 'application/json')
+               .auth( USERNAME, PASSWORD )
+               .send( { "code": "88888" } )
+               .end( (err, res) => {
+                   res.should.have.status( 200 );
+                   res.body.should.have.property( 'bobby', '88888' );
+                 done();
+               });
+
+      });
+
+
+      it( "should delete an existing code", (done) => {
+
+         before( () => {
+             chai.request( app )
+               .post( '/api/codes/bobby' )
+               .set('content-type', 'application/json')
+               .auth( USERNAME, PASSWORD )
+               .send( { "code": "88888" } )
+               .end();
+
+            chai.request( app )
+               .delete( '/api/codes/bobby' )
+               .auth( USERNAME, PASSWORD )
+               .end( );
+
+         });
+
+
+         chai.request( app )
+               .get( '/api/codes/bobby' )
+               .auth( USERNAME, PASSWORD )
+               .end( (err, res) => {
+                   res.should.have.status( 404 );
+                 done();
+               });
+
+      });
+
+
+
+
+   });
 
     
 });
+
+
+
+
+

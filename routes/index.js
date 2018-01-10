@@ -72,7 +72,7 @@ router.post( '/api/codes/:name', (req, res) => {
    var entry = {};
    entry[ req.params.name ] = code;
 
-   res.status( 202 ).json( entry );
+   res.status( 200 ).json( entry );
 
    winston.info( "Updated codes: " + JSON.stringify( nconf.get( 'codes' ) ) );
    nconf.save();

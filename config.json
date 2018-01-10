@@ -3,9 +3,20 @@
   "api_port": 9019,
   "username": "user",
   "password": "password",
+  "lock": {
+		"motorRed": 21,
+		"motorBlack": 20,
+		"sensorGreen": 26,
+		"sensorBlue": 19,
+		"door_side": "right"
+  },
+  "serial": {
+     "port": "/dev/ttyAMA0",
+     "baud": 115200
+  },  
   "codes": {
-    "clyde": "09812",
-    "bonnie": "11121"
+    "clyde": "000000",
+    "bonnie": "111111"
   },
   "state": "unlocked"
 }

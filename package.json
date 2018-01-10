@@ -29,6 +29,7 @@
     "nodemon": "^1.14.7",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
+    "serialport": "^6.0.4",
     "winston": "^3.0.0-rc1"
   }
 }
