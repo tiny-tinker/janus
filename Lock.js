@@ -38,18 +38,23 @@ var Lock = function( config )  {
     
     
     // Register an interrupt for when the sensor is "pressed"
-    this.sensorInside.on('interrupt', function( level ) { 
+    // The sensor opposite the handle is the one that gets "pressed"
+    this.sensorOutside.on('interrupt', ( level ) => { 
        if( level ) {
-          this.motorUnlock.digitalWrite( 0 );
+          console.log( 'Hello? Outside level: ' + level );
+          self.motorLock.digitalWrite( 0 );
        }
     });
     
-    this.sensorOutside.on('interrupt', function( level ) { 
+    this.sensorInside.on('interrupt', ( level ) => { 
        if( level ) {
-          this.motorLock.digitalWrite( 0 );
+          console.log( 'Hello? Inside? level: ' + level );
+          self.motorUnlock.digitalWrite( 0 );
        }
     });
 
+
+    var self = this;
 
     
 

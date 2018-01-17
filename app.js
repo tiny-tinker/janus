@@ -2,7 +2,8 @@ const winston    = require( 'winston' );
 const nconf      = require( 'nconf' );
 const express    = require( 'express' );
 const bodyParser = require( 'body-parser' );
-
+const SerialPort = require( 'serialport' );
+const Lock       = require( 'Lock' );
 
 const app = express();
 
@@ -24,9 +25,12 @@ nconf.argv( { parseValues: true } )
      .env(  { parseValues: true, lowerCase: true } )
      .file( 'config.json' );
 
+var theLock = new Lock( nconf.get( 'lock' ) );
+
+
 // Here is where we check on the current state of the lock
 // via GPIO pins
-nconf.set( 'state', 'unlocked' );
+nconf.set( 'state', theLock.getCurrentStatus() );
 
 
 passport.use( new BasicStrategy(
@@ -45,17 +49,88 @@ passport.use( new BasicStrategy(
  
 app.set( 'port', nconf.get('api_port') );
 
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
+app.use( bodyParser.urlencoded( { extended: true } ) );
+app.use( bodyParser.json() );
 
 app.use( require( './routes/index' ) );
+
+
+app.use( function( req, res, next) {
+	req.theLock = theLock;
+})
+
+
+var serialPort = new SerialPort( nconf.get( 'serial:port' ), { 
+   baudRate: nconf.get( 'serial:baud' )
+});
+
+
+var codeEntry = "";
+var firstEntry = false;
+
+// Switches the port into "flowing mode"
+serialPort.on('data', processSerialPortData );
+
+
 
 
 var server = app.listen( app.get('port'), function() {
   winston.info( 'Janus listening on ' + app.get('port') );
 });
+
+
+
+
+verifyCode = function( code ) {
+    var codes = nconf.get( 'codes' );
+
+	for( c in codes ) {
+		if( codes[c] == code )
+			return true;
+	}
+	return false;
+
+}
+
+
+
+processSerialPortData = function( data ) {
+  firstEntry = !firstEntry;
+
+  char = data.toString().replace( '\r\n', '' );
+
+
+  if( !firstEntry ) {
+    //console.log( 'Skipping' );
+    return;
+  }
+
+  if( char == "K" ) {
+    if( codeEntry.length == 0 ) {
+      // Attempt to lock the lock
+      console.log( 'Locking!' );
+      codeEntry = "";
+    }
+    else {
+      // Then we should try to match the code 
+      console.log( 'Attempting to match "' + codeEntry + '"' );
+      codeEntry = "";
+
+    }
+  }
+
+  if( char == "E" ) {
+    codeEntry = "";
+    console.log( 'Clearing!' );
+  }
+
+  // Otherwise we append 
+  codeEntry += char;
+  console.log('Data: "' + char + '"' );
+}
+
+
+
 
 
 module.exports = server

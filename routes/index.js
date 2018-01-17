@@ -10,22 +10,50 @@ router.all( '/api/*', passport.authenticate('basic', { session: false } ) );
 
 ////// LOCK /////// 
 router.post( '/api/lock', (req, res) => {
-   winston.info( 'Body: ' + JSON.stringify( req.body )  );
 
    winston.info( 'Received command to "' + req.body.action + '"' );
 
-   res.status(200);
- 
-   if( (req.body.action + "ed") == nconf.get( 'state' ) ) {
-      res.status(202);
+   nconf.set( 'state', req.theLock.getCurrentState() );
+
+
+   res.status( 200 );
+
+   // Check to see if it is in error state
+   if( nconf.get( 'state' ) == "error" ) {
+      winston.error( 'Lock is in error state, could not complete action' );
+      res.status( 500 ).json( { "state": "error", "message": "Lock is in error state" })
+   } 
+
+   // Check to see if it is already (un)locked
+   else if( (req.body.action + "ed") == nconf.get( 'state' ) ) {
+      
+      nconf.set( 'state', req.theLock.getCurrentState() );
+      res.status(202).json( { "state": nconf.get( 'state' ) } );
+   }
+
+   // Otherwise, do the action
+   else if( req.body.action == "lock" ) {
+      req.theLock.lock();
+      nconf.set( 'state', req.theLock.getCurrentState() );
+      res.json( { "state": nconf.get( 'state' ) } );
+   }
+   else if( req.body.action == "unlock" ) {
+      req.theLock.unlock();
+      nconf.set( 'state', req.theLock.getCurrentState() );
+      res.json( { "state": nconf.get( 'state' ) } );
+   }
+
+   // Say what now?
+   else {
+      res.status( 400 ).json( { "state": "error", "message": "Unknown action '" + req.body.action + "'" });
    }
  
-   res.json( { "state": nconf.get( 'state' ) } );
 
 
 });
 
 router.get( '/api/state', (req, res) => {
+   nconf.set( 'state', req.theLock.getCurrentState() );
 
    res.json( { "state": nconf.get( 'state' ) } );
 
