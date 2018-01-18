@@ -7,13 +7,13 @@ var router   = express.Router();
 
 router.all( '/api/*', passport.authenticate('basic', { session: false } ) );
 
-
 ////// LOCK /////// 
 router.post( '/api/lock', (req, res) => {
 
    winston.info( 'Received command to "' + req.body.action + '"' );
 
-   nconf.set( 'state', req.theLock.getCurrentState() );
+   var theLock = req.app.get( 'theLock' );
+   nconf.set( 'state', theLock.getCurrentState() );
 
 
    res.status( 200 );
@@ -27,19 +27,19 @@ router.post( '/api/lock', (req, res) => {
    // Check to see if it is already (un)locked
    else if( (req.body.action + "ed") == nconf.get( 'state' ) ) {
       
-      nconf.set( 'state', req.theLock.getCurrentState() );
+      nconf.set( 'state', theLock.getCurrentState() );
       res.status(202).json( { "state": nconf.get( 'state' ) } );
    }
 
    // Otherwise, do the action
    else if( req.body.action == "lock" ) {
-      req.theLock.lock();
-      nconf.set( 'state', req.theLock.getCurrentState() );
+      theLock.lock();
+      nconf.set( 'state', theLock.getCurrentState() );
       res.json( { "state": nconf.get( 'state' ) } );
    }
    else if( req.body.action == "unlock" ) {
-      req.theLock.unlock();
-      nconf.set( 'state', req.theLock.getCurrentState() );
+      theLock.unlock();
+      nconf.set( 'state', theLock.getCurrentState() );
       res.json( { "state": nconf.get( 'state' ) } );
    }
 
@@ -53,7 +53,8 @@ router.post( '/api/lock', (req, res) => {
 });
 
 router.get( '/api/state', (req, res) => {
-   nconf.set( 'state', req.theLock.getCurrentState() );
+   var theLock = req.app.get( 'theLock' );
+   nconf.set( 'state', theLock.getCurrentState() );
 
    res.json( { "state": nconf.get( 'state' ) } );
 

@@ -3,7 +3,7 @@ const nconf      = require( 'nconf' );
 const express    = require( 'express' );
 const bodyParser = require( 'body-parser' );
 const SerialPort = require( 'serialport' );
-const Lock       = require( 'Lock' );
+const Lock       = require( './Lock' );
 
 const app = express();
 
@@ -30,13 +30,12 @@ var theLock = new Lock( nconf.get( 'lock' ) );
 
 // Here is where we check on the current state of the lock
 // via GPIO pins
-nconf.set( 'state', theLock.getCurrentStatus() );
-
+nconf.set( 'state', theLock.getCurrentState() );
 
 passport.use( new BasicStrategy(
    function( username, password, done ) {
- 	if( username != nconf.get('username') || password != nconf.get('password') ) {
- 		winston.info( 'Invalid password attempt!' );
+ 	if( username != nconf.get('api_username') || password != nconf.get('api_password') ) {
+ 		winston.info( 'Invalid password attempt for user " ' + username + '"!' );
  		return done( null, false );
  	}
  	return done( null, username );
@@ -94,7 +93,7 @@ verifyCode = function( code ) {
 
 
 
-processSerialPortData = function( data ) {
+function processSerialPortData( data ) {
   firstEntry = !firstEntry;
 
   char = data.toString().replace( '\r\n', '' );
@@ -110,23 +109,32 @@ processSerialPortData = function( data ) {
       // Attempt to lock the lock
       console.log( 'Locking!' );
       codeEntry = "";
+      theLock.lock();
     }
     else {
       // Then we should try to match the code 
       console.log( 'Attempting to match "' + codeEntry + '"' );
+      if( verifyCode( codeEntry ) ) {
+         console.log( '   Match!' );
+         theLock.unlock();
+      } 
+      else {
+         console.log( '   No match :(' );
+      }
       codeEntry = "";
 
     }
   }
 
-  if( char == "E" ) {
+  else if( char == "E" ) {
     codeEntry = "";
     console.log( 'Clearing!' );
   }
-
-  // Otherwise we append 
-  codeEntry += char;
-  console.log('Data: "' + char + '"' );
+  else {
+     // Otherwise we append 
+     codeEntry += char;
+  }
+  console.log('Data: "' + char + '" "' + codeEntry + '" ' + codeEntry.length );
 }
 
 

@@ -1,8 +1,8 @@
 {
   "lock_name": "Garage",
   "api_port": 9019,
-  "username": "user",
-  "password": "password",
+  "api_username": "user",
+  "api_password": "password",
   "lock": {
 		"motorRed": 21,
 		"motorBlack": 20,
