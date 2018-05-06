@@ -1,0 +1,15 @@
+var SerialPort = require('serialport');
+var port = new SerialPort('/dev/ttyAMA0', {
+  baudRate: 115200
+});
+
+
+
+
+// Switches the port into "flowing mode"
+port.on('data', function (data) {
+  console.log('Data:', data.toString() );
+});
+
+
+

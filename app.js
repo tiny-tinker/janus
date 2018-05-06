@@ -1,6 +1,7 @@
 const winston    = require( 'winston' );
 const nconf      = require( 'nconf' );
 const express    = require( 'express' );
+const https      = require('https');
 const bodyParser = require( 'body-parser' );
 const SerialPort = require( 'serialport' );
 const Lock       = require( './Lock' );
@@ -71,11 +72,16 @@ var firstEntry = false;
 serialPort.on('data', processSerialPortData );
 
 
+var sslOptions = {
+  key: fs.readFileSync( nconf.get( 'key_file' ) ),
+  cert: fs.readFileSync( nconf.get( 'cert_file' ) )
+};
 
 
-var server = app.listen( app.get('port'), function() {
+https.createServer( sslOptions, app ).listen( app.get('port'), function() {
   winston.info( 'Janus listening on ' + app.get('port') );
 });
+
 
 
 
@@ -99,6 +105,8 @@ function processSerialPortData( data ) {
   char = data.toString().replace( '\r\n', '' );
 
 
+  // The keypad sends the code twice for some reason, so we
+  // skip it. 
   if( !firstEntry ) {
     //console.log( 'Skipping' );
     return;
@@ -107,19 +115,19 @@ function processSerialPortData( data ) {
   if( char == "K" ) {
     if( codeEntry.length == 0 ) {
       // Attempt to lock the lock
-      console.log( 'Locking!' );
+      winston.debug( 'Locking!' );
       codeEntry = "";
       theLock.lock();
     }
     else {
       // Then we should try to match the code 
-      console.log( 'Attempting to match "' + codeEntry + '"' );
+      winston.debug( 'Attempting to match "' + codeEntry + '"' );
       if( verifyCode( codeEntry ) ) {
-         console.log( '   Match!' );
+         winston.debug( '   Match!' );
          theLock.unlock();
       } 
       else {
-         console.log( '   No match :(' );
+         winston.debug( '   No match :(' );
       }
       codeEntry = "";
 
@@ -128,13 +136,13 @@ function processSerialPortData( data ) {
 
   else if( char == "E" ) {
     codeEntry = "";
-    console.log( 'Clearing!' );
+    winston.debug( 'Clearing!' );
   }
   else {
      // Otherwise we append 
      codeEntry += char;
   }
-  console.log('Data: "' + char + '" "' + codeEntry + '" ' + codeEntry.length );
+  winston.debug('Data: "' + char + '" "' + codeEntry + '" ' + codeEntry.length );
 }
 
 
