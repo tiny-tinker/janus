@@ -3,8 +3,6 @@
   "api_port": 9019,
   "api_username": "user",
   "api_password": "password",
-  "cert_file": "./cert.pem",
-  "key_file": "./key.pem",
   "lock": {
 		"motorRed": 21,
 		"motorBlack": 20,

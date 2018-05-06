@@ -72,13 +72,7 @@ var firstEntry = false;
 serialPort.on('data', processSerialPortData );
 
 
-var sslOptions = {
-  key: fs.readFileSync( nconf.get( 'key_file' ) ),
-  cert: fs.readFileSync( nconf.get( 'cert_file' ) )
-};
-
-
-https.createServer( sslOptions, app ).listen( app.get('port'), function() {
+https.createServer( app ).listen( app.get('port'), function() {
   winston.info( 'Janus listening on ' + app.get('port') );
 });
 
