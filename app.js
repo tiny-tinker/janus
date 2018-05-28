@@ -1,7 +1,7 @@
 const winston    = require( 'winston' );
 const nconf      = require( 'nconf' );
 const express    = require( 'express' );
-const https      = require('https');
+const https      = require( 'https' );
 const bodyParser = require( 'body-parser' );
 const SerialPort = require( 'serialport' );
 const Lock       = require( './Lock' );
@@ -139,9 +139,4 @@ function processSerialPortData( data ) {
   winston.debug('Data: "' + char + '" "' + codeEntry + '" ' + codeEntry.length );
 }
 
-
-
-
-
-module.exports = server
 
