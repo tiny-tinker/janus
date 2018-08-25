@@ -1,8 +1,7 @@
 const winston    = require( 'winston' );
 const nconf      = require( 'nconf' );
 const express    = require( 'express' );
-const https      = require( 'https' );
-const bodyParser = require( 'body-parser' );
+const http       = require( 'http' );
 const SerialPort = require( 'serialport' );
 const Lock       = require( './Lock' );
 
@@ -20,14 +19,20 @@ if( process.env.NODE_ENV !== "test" ) {
 }
 
 
+if( process.env.DEBUG ) {
+  winston.level = 'debug';
+  winston.debug( 'Debug enabled' );
+}
+
 // Load config from cmd line, ENV, then finally config.json
-//codes='[{"name":"travis", "code":"0987"}]'
+//codes='[{"name":"travis", "code":"1234"}]'
 nconf.argv( { parseValues: true } )
      .env(  { parseValues: true, lowerCase: true } )
      .file( 'config.json' );
 
 var theLock = new Lock( nconf.get( 'lock' ) );
 
+winston.info( 'Got Lock. Status: ' + theLock.getCurrentState() );
 
 // Here is where we check on the current state of the lock
 // via GPIO pins
@@ -49,16 +54,12 @@ passport.use( new BasicStrategy(
  
 app.set( 'port', nconf.get('api_port') );
 
-app.use( bodyParser.urlencoded( { extended: true } ) );
-app.use( bodyParser.json() );
+app.use( express.urlencoded( { extended: true } ) );
+app.use( express.json() );
 
 app.use( require( './routes/index' ) );
 
-
-app.use( function( req, res, next) {
-	req.theLock = theLock;
-})
-
+app.set( 'theLock', theLock );
 
 var serialPort = new SerialPort( nconf.get( 'serial:port' ), { 
    baudRate: nconf.get( 'serial:baud' )
@@ -72,7 +73,7 @@ var firstEntry = false;
 serialPort.on('data', processSerialPortData );
 
 
-https.createServer( app ).listen( app.get('port'), function() {
+http.createServer( app ).listen( app.get('port'), function() {
   winston.info( 'Janus listening on ' + app.get('port') );
 });
 
@@ -94,6 +95,8 @@ verifyCode = function( code ) {
 
 
 function processSerialPortData( data ) {
+  console.log( 'Received: ' + data );
+
   firstEntry = !firstEntry;
 
   char = data.toString().replace( '\r\n', '' );

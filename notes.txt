@@ -1,15 +1,66 @@
-var SerialPort = require('serialport');
-var port = new SerialPort('/dev/ttyAMA0', {
-  baudRate: 115200
-});
+
+
+HOSTNAME=192.168.2.142
+PORT=9019
+
+
+curl -X $METHOD -u "user:password" http://$HOSTNAME:$PORT
 
 
 
 
-// Switches the port into "flowing mode"
-port.on('data', function (data) {
-  console.log('Data:', data.toString() );
-});
 
+
+/api/codes/
+
+
+# Lock/unlock
+POST /api/lock
+
+curl -X POST -H "Content-Type: application/json" -u "user:password" http://$HOSTNAME:$PORT/api/lock -d '{"action": "lock" }'
+
+# Get state
+GET /api/state
+
+curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/state
+
+
+
+
+
+# Get all codes
+GET /api/codes/
+
+
+curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/codes
+
+
+# Get a code
+GET /api/codes/{name}
+
+
+curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/codes/bonnie
+
+
+
+
+
+
+minicom -o -D /dev/ttyAMA0 -b 115200
+
+
+
+
+
+
+   mv /usr/local/lib/nodejs/node-v6.14.2-linux-armv6l/ /usr/local/lib/nodejs/node-v6.14.2
+   cd /usr/local/lib/nodejs/
+   ll
+   cd node-v8.11.1/
+   ll
+   pwd
+   export NODEJS_HOME=`pwd`/bin
+   echo $NODEJS_HOME
+   export PATH=$NODEJS_HOME:$PATH
 
 

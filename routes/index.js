@@ -10,7 +10,7 @@ router.all( '/api/*', passport.authenticate('basic', { session: false } ) );
 ////// LOCK /////// 
 router.post( '/api/lock', (req, res) => {
 
-   winston.info( 'Received command to "' + req.body.action + '"' );
+   winston.info( "Received command to '" + req.body.action + "'" );
 
    var theLock = req.app.get( 'theLock' );
    nconf.set( 'state', theLock.getCurrentState() );
