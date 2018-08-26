@@ -1,51 +1,52 @@
 const express  = require( 'express' ); 
-const winston  = require( 'winston' );
+//const winston  = require( 'winston' );
 const passport = require( 'passport' );
 const nconf    = require( 'nconf' );
 
 var router   = express.Router();
 
-console.log( 'Init router...' );
-
 router.all( '/api/*', passport.authenticate('basic', { session: false } ) );
+
 
 ////// LOCK /////// 
 router.post( '/api/lock', (req, res) => {
+   var winston = req.app.get( 'winston' );
 
    winston.info( "Received command to '" + req.body.action + "'" );
 
    var theLock = req.app.get( 'theLock' );
-   nconf.set( 'state', theLock.getCurrentState() );
-
    
    winston.debug( 'The Lock: "' +  JSON.stringify( theLock, null, 3 ) );
 
 
    res.status( 200 );
 
+   var state = theLock.getCurrentState();
+   winston.info( 'State: ' + state );
+
+   
+
    // Check to see if it is in error state
-   if( nconf.get( 'state' ) == "error" ) {
+   if( state == "error" ) {
       winston.error( 'Lock is in error state, could not complete action' );
-      res.status( 500 ).json( { "state": "error", "message": "Lock is in error state" })
+      res.status( 500 ).json( { "result": "error", "message": "Lock is in error state" })
    } 
 
    // Check to see if it is already (un)locked
-   else if( (req.body.action + "ed") == nconf.get( 'state' ) ) {
+   else if( (req.body.action + "ed") == state ) {
       
-      nconf.set( 'state', theLock.getCurrentState() );
-      res.status(202).json( { "state": nconf.get( 'state' ) } );
+      winston.debug( 'Already ' + req.body.action + "ed" );
+      res.status(202).json( { "result": "No change" } );
    }
 
    // Otherwise, do the action
    else if( req.body.action == "lock" ) {
       theLock.lock();
-      nconf.set( 'state', theLock.getCurrentState() );
-      res.json( { "state": nconf.get( 'state' ) } );
+      res.json( { "result": "OK" } );
    }
    else if( req.body.action == "unlock" ) {
       theLock.unlock();
-      nconf.set( 'state', theLock.getCurrentState() );
-      res.json( { "state": nconf.get( 'state' ) } );
+      res.json( { "result": "OK" } );
    }
 
    // Say what now?
@@ -58,11 +59,11 @@ router.post( '/api/lock', (req, res) => {
 });
 
 router.get( '/api/state', (req, res) => {
-   console.log( 'GET /api/state?' );
-   var theLock = req.app.get( 'theLock' );
-   nconf.set( 'state', theLock.getCurrentState() );
+   var winston = req.app.get( 'winston' );
 
-   res.json( { "state": nconf.get( 'state' ) } );
+   var theLock = req.app.get( 'theLock' );
+
+   res.json( { "state": theLock.getCurrentState() } );
 
 });
 
@@ -92,6 +93,8 @@ router.get( '/api/codes/:name', (req, res) => {
 
 router.post( '/api/codes/:name', (req, res) => {
 
+   var winston = req.app.get( 'winston' );
+
    var code = req.body.code;
    if( !code ) {
       code = getRandomCode();
@@ -116,6 +119,7 @@ router.post( '/api/codes/:name', (req, res) => {
 
 
 router.delete( '/api/codes/:name', (req,res) => {
+   var winston = req.app.get( 'winston' );
 
    var codes = nconf.get( 'codes' );
 

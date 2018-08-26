@@ -23,14 +23,7 @@
   },
   "homepage": "https://github.com/nomadic-squirrel/janus#readme",
   "dependencies": {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
     "body-parser": "^1.18.3",
->>>>>>> Stashed changes
-=======
-    "body-parser": "^1.18.3",
->>>>>>> Stashed changes
     "express": "^4.16.2",
     "nconf": "^0.10.0",
     "nodemon": "^1.17.5",

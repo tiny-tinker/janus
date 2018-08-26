@@ -3,8 +3,9 @@
 var Gpio = require('pigpio').Gpio;
 
 
-var Lock = function( config )  {
+var Lock = function( config, logger )  {
 
+    this.logger = ( logger ? logger : { 'info': console.log, 'error': console.log, 'debug': console.log } );
     this.doorSide = config.door_side; // The side of the door the lock is on when viewing from the handle side, not the keypad side!
 
 
@@ -41,14 +42,12 @@ var Lock = function( config )  {
     // The sensor opposite the handle is the one that gets "pressed"
     this.sensorOutside.on('interrupt', ( level ) => { 
        if( level ) {
-          console.log( 'Hello? Outside level: ' + level );
           self.motorLock.digitalWrite( 0 );
        }
     });
     
     this.sensorInside.on('interrupt', ( level ) => { 
        if( level ) {
-          console.log( 'Hello? Inside? level: ' + level );
           self.motorUnlock.digitalWrite( 0 );
        }
     });
@@ -61,14 +60,25 @@ var Lock = function( config )  {
 };
 
 Lock.prototype.lock = function() {
-    if( this.getCurrentState() != "error" )
+    var state = this.getCurrentState();
+
+    this.logger.debug( 'theLock: Currently: "' + state + '". Attempting to lock' );
+    if( state !== "locked" && state !== "error"  ) {
+      this.logger.debug( 'digitalWrite...' );
        this.motorLock.digitalWrite( 1 );
+    }
+    
 };
 
 
 Lock.prototype.unlock = function() {
-    if( this.getCurrentState() != "error" )
+    var state = this.getCurrentState();
+
+    this.logger.debug( 'theLock: Currently: "' + state + '". Attempting to unlock' );
+    if( state !== "unlocked" && state !== "error" ) {
+      this.logger.debug( 'digitalWrite...' );
         this.motorUnlock.digitalWrite( 1 );
+    }
 };
 
 Lock.prototype.getCurrentState = function() {

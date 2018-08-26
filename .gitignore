@@ -1,3 +1,4 @@
 logs/
 persistence.db
 node_modules
+sftp-config.json

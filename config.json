@@ -12,7 +12,8 @@
   },
   "serial": {
      "port": "/dev/ttyAMA0",
-     "baud": 115200
+     "baud": 115200,
+     "reset": 4
   },  
   "codes": {
     "t": "000",

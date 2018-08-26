@@ -1,47 +1,38 @@
 const winston    = require( 'winston' );
 const nconf      = require( 'nconf' );
 const express    = require( 'express' );
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 const http       = require( 'http' );
-=======
-=======
->>>>>>> Stashed changes
-const http      = require( 'http' );
 const bodyParser = require( 'body-parser' );
->>>>>>> Stashed changes
 const SerialPort = require( 'serialport' );
 const Lock       = require( './Lock' );
+
+// This might need to be wrapped into an object
+// for dealing with the arduino
+const Gpio       = require('pigpio').Gpio;
+
+
 
 const app = express();
 
 const passport      = require( 'passport' );
 const BasicStrategy = require( 'passport-http' ).BasicStrategy;
 
-console.log( 'Hello?' );
 
-winston.add( new winston.transports.File({ filename: __dirname + '/logs/main.log' } ) );
+const level = ( process.env.DEBUG ? 'debug' : 'info' );
+winston.add( new winston.transports.File( { 
+  'filename': __dirname + '/logs/main.log',
+  'level': level
+} ) );
 
 
 if( process.env.NODE_ENV !== "test" ) {
-   winston.add( new winston.transports.Console() );
+   winston.add( new winston.transports.Console( { 
+     'level': level,
+     'format': winston.format.simple()
+   } ) );
 }
 
-console.log( 'DEBUG? ' + process.env.DEBUG );
-
-if( process.env.DEBUG ) {
-  winston.level = 'debug';
-  winston.debug( 'Debug enabled!' );
-}
-
-<<<<<<< Updated upstream
-
-if( process.env.DEBUG ) {
-  winston.level = 'debug';
-  winston.debug( 'Debug enabled' );
-}
-=======
->>>>>>> Stashed changes
+winston.debug( 'Debug enabled!' );
 
 // Load config from cmd line, ENV, then finally config.json
 //codes='[{"name":"travis", "code":"1234"}]'
@@ -52,18 +43,12 @@ nconf.argv( { parseValues: true } )
 var theLock = new Lock( nconf.get( 'lock' ) );
 
 winston.info( 'Got Lock. Status: ' + theLock.getCurrentState() );
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
 
 // Here is where we check on the current state of the lock
 // via GPIO pins
 nconf.set( 'state', theLock.getCurrentState() );
+
+
 
 passport.use( new BasicStrategy(
    function( username, password, done ) {
@@ -82,46 +67,24 @@ passport.use( new BasicStrategy(
 app.set( 'port', nconf.get('api_port') );
 
 app.use( express.urlencoded( { extended: true } ) );
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-//app.use( bodyParser.json() );
->>>>>>> Stashed changes
-=======
-//app.use( bodyParser.json() );
->>>>>>> Stashed changes
 app.use( express.json() );
+
 
 app.use( require( './routes/index' ) );
 
+app.set( 'winston', winston );
 app.set( 'theLock', theLock );
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
+winston.debug( 'Lock setup' );
 
-/*
-app.use( function( req, res, next) {
-	req.theLock = theLock;
-	next();
-})
-*/
-<<<<<<< Updated upstream
 
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-
-console.log( 'Set up the Lock' );
-
-console.log( 'Set up the Lock' );
+const arduinoRST = new Gpio( nconf.get( 'serial:reset' ),   { mode: Gpio.OUTPUT } );
+arduinoRST.digitalWrite( 0 );
 
 var serialPort = new SerialPort( nconf.get( 'serial:port' ), { 
    baudRate: nconf.get( 'serial:baud' )
 });
 
-console.log( 'Set up the serialport' );
+winston.debug( 'serialport setup' );
 
 var codeEntry = "";
 var firstEntry = false;
@@ -132,16 +95,16 @@ serialPort.on('data', processSerialPortData );
 
 http.createServer( app ).listen( app.get('port'), function() {
   winston.info( 'Janus listening on ' + app.get('port') );
-  console.log(' Listening!' );
+
 });
 
 
-console.log( 'After createServer' );
+
 
 
 verifyCode = function( code ) {
-	console.log( 'Something happening?' );
-    var codes = nconf.get( 'codes' );
+	
+  var codes = nconf.get( 'codes' );
 
 	for( c in codes ) {
 		if( codes[c] == code )
@@ -154,22 +117,8 @@ verifyCode = function( code ) {
 
 
 function processSerialPortData( data ) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  console.log( 'Received: ' + data );
-
-=======
-
-    console.log( 'Received: ' + data );
->>>>>>> Stashed changes
-=======
-
-    console.log( 'Received: ' + data );
->>>>>>> Stashed changes
+  
   firstEntry = !firstEntry;
-
-  char = data.toString().replace( '\r\n', '' );
-
 
   // The keypad sends the code twice for some reason, so we
   // skip it. 
@@ -177,6 +126,9 @@ function processSerialPortData( data ) {
     //console.log( 'Skipping' );
     return;
   }
+
+  char = data.toString().replace( '\r\n', '' );
+  winston.debug( 'Received: ' + char ); 
 
   if( char == "K" ) {
     if( codeEntry.length == 0 ) {
@@ -189,7 +141,7 @@ function processSerialPortData( data ) {
       // Then we should try to match the code 
       winston.debug( 'Attempting to match "' + codeEntry + '"' );
       if( verifyCode( codeEntry ) ) {
-         winston.debug( '   Match!' );
+         winston.debug( '   Unlocking!' );
          theLock.unlock();
       } 
       else {
@@ -204,10 +156,24 @@ function processSerialPortData( data ) {
     codeEntry = "";
     winston.debug( 'Clearing!' );
   }
+
+  // Something wonky happened with the
+  // arduino, so let's just reset it
+  else if( char == "RST" ) {
+     winston.info( 'RST occurred. Resetting arduino.' );
+     arduinoRST.digitalWrite( 1 );
+
+     arduinoRST.digitalWrite( 0 );
+  }
+
+  else if( char == "Hello" ) {
+    winston.info( 'Arduino ready' );
+  }
   else {
      // Otherwise we append 
      codeEntry += char;
   }
+  
   winston.debug('Data: "' + char + '" "' + codeEntry + '" ' + codeEntry.length );
 }
 
