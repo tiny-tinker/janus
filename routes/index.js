@@ -5,6 +5,8 @@ const nconf    = require( 'nconf' );
 
 var router   = express.Router();
 
+console.log( 'Init router...' );
+
 router.all( '/api/*', passport.authenticate('basic', { session: false } ) );
 
 ////// LOCK /////// 
@@ -14,6 +16,9 @@ router.post( '/api/lock', (req, res) => {
 
    var theLock = req.app.get( 'theLock' );
    nconf.set( 'state', theLock.getCurrentState() );
+
+   
+   winston.debug( 'The Lock: "' +  JSON.stringify( theLock, null, 3 ) );
 
 
    res.status( 200 );
@@ -53,6 +58,7 @@ router.post( '/api/lock', (req, res) => {
 });
 
 router.get( '/api/state', (req, res) => {
+   console.log( 'GET /api/state?' );
    var theLock = req.app.get( 'theLock' );
    nconf.set( 'state', theLock.getCurrentState() );
 

@@ -1,7 +1,15 @@
 const winston    = require( 'winston' );
 const nconf      = require( 'nconf' );
 const express    = require( 'express' );
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 const http       = require( 'http' );
+=======
+=======
+>>>>>>> Stashed changes
+const http      = require( 'http' );
+const bodyParser = require( 'body-parser' );
+>>>>>>> Stashed changes
 const SerialPort = require( 'serialport' );
 const Lock       = require( './Lock' );
 
@@ -10,6 +18,7 @@ const app = express();
 const passport      = require( 'passport' );
 const BasicStrategy = require( 'passport-http' ).BasicStrategy;
 
+console.log( 'Hello?' );
 
 winston.add( new winston.transports.File({ filename: __dirname + '/logs/main.log' } ) );
 
@@ -18,11 +27,21 @@ if( process.env.NODE_ENV !== "test" ) {
    winston.add( new winston.transports.Console() );
 }
 
+console.log( 'DEBUG? ' + process.env.DEBUG );
+
+if( process.env.DEBUG ) {
+  winston.level = 'debug';
+  winston.debug( 'Debug enabled!' );
+}
+
+<<<<<<< Updated upstream
 
 if( process.env.DEBUG ) {
   winston.level = 'debug';
   winston.debug( 'Debug enabled' );
 }
+=======
+>>>>>>> Stashed changes
 
 // Load config from cmd line, ENV, then finally config.json
 //codes='[{"name":"travis", "code":"1234"}]'
@@ -33,6 +52,14 @@ nconf.argv( { parseValues: true } )
 var theLock = new Lock( nconf.get( 'lock' ) );
 
 winston.info( 'Got Lock. Status: ' + theLock.getCurrentState() );
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
+=======
+
+>>>>>>> Stashed changes
 
 // Here is where we check on the current state of the lock
 // via GPIO pins
@@ -55,16 +82,46 @@ passport.use( new BasicStrategy(
 app.set( 'port', nconf.get('api_port') );
 
 app.use( express.urlencoded( { extended: true } ) );
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+//app.use( bodyParser.json() );
+>>>>>>> Stashed changes
+=======
+//app.use( bodyParser.json() );
+>>>>>>> Stashed changes
 app.use( express.json() );
 
 app.use( require( './routes/index' ) );
 
 app.set( 'theLock', theLock );
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+
+/*
+app.use( function( req, res, next) {
+	req.theLock = theLock;
+	next();
+})
+*/
+<<<<<<< Updated upstream
+
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+
+console.log( 'Set up the Lock' );
+
+console.log( 'Set up the Lock' );
 
 var serialPort = new SerialPort( nconf.get( 'serial:port' ), { 
    baudRate: nconf.get( 'serial:baud' )
 });
 
+console.log( 'Set up the serialport' );
 
 var codeEntry = "";
 var firstEntry = false;
@@ -75,13 +132,15 @@ serialPort.on('data', processSerialPortData );
 
 http.createServer( app ).listen( app.get('port'), function() {
   winston.info( 'Janus listening on ' + app.get('port') );
+  console.log(' Listening!' );
 });
 
 
-
+console.log( 'After createServer' );
 
 
 verifyCode = function( code ) {
+	console.log( 'Something happening?' );
     var codes = nconf.get( 'codes' );
 
 	for( c in codes ) {
@@ -95,8 +154,18 @@ verifyCode = function( code ) {
 
 
 function processSerialPortData( data ) {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   console.log( 'Received: ' + data );
 
+=======
+
+    console.log( 'Received: ' + data );
+>>>>>>> Stashed changes
+=======
+
+    console.log( 'Received: ' + data );
+>>>>>>> Stashed changes
   firstEntry = !firstEntry;
 
   char = data.toString().replace( '\r\n', '' );
