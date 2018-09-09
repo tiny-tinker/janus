@@ -21,6 +21,7 @@ const BasicStrategy = require( 'passport-http' ).BasicStrategy;
 const level = ( process.env.DEBUG ? 'debug' : 'info' );
 winston.add( new winston.transports.File( { 
   'filename': __dirname + '/logs/main.log',
+  'maxsize': '10000000',  // More or less 10MB
   'level': level
 } ) );
 

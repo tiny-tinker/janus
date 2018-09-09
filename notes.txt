@@ -3,24 +3,16 @@
 HOSTNAME=192.168.2.142
 PORT=9019
 
-
-curl -X $METHOD -u "user:password" http://$HOSTNAME:$PORT
-
-
-
-
-
-
-/api/codes/
+# /api/codes/
 
 
 # Lock/unlock
-POST /api/lock
+# POST /api/lock
 
 curl -X POST -H "Content-Type: application/json" -u "user:password" http://$HOSTNAME:$PORT/api/lock -d '{"action": "lock" }'
 
 # Get state
-GET /api/state
+# GET /api/state
 
 curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/state
 
@@ -29,7 +21,7 @@ curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/state
 
 
 # Get all codes
-GET /api/codes/
+# GET /api/codes/
 
 
 curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/codes
@@ -40,8 +32,6 @@ GET /api/codes/{name}
 
 
 curl -X GET -u "user:password" http://$HOSTNAME:$PORT/api/codes/bonnie
-
-
 
 
 

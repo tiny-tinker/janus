@@ -4,7 +4,7 @@
   "api_username": "user",
   "api_password": "password",
   "lock": {
-		"motorRed": 21,
+		"motorRed": 16,
 		"motorBlack": 20,
 		"sensorGreen": 26,
 		"sensorBlue": 19,
@@ -16,7 +16,6 @@
      "reset": 4
   },  
   "codes": {
-    "t": "000",
     "clyde": "000000",
     "bonnie": "111111"
   },

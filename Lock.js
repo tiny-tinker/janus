@@ -40,12 +40,14 @@ var Lock = function( config, logger )  {
     
     // Register an interrupt for when the sensor is "pressed"
     // The sensor opposite the handle is the one that gets "pressed"
+    // So, tell the motor to stop locking. 
     this.sensorOutside.on('interrupt', ( level ) => { 
        if( level ) {
           self.motorLock.digitalWrite( 0 );
        }
     });
     
+    // Tell the motor to stop unlocking. 
     this.sensorInside.on('interrupt', ( level ) => { 
        if( level ) {
           self.motorUnlock.digitalWrite( 0 );
